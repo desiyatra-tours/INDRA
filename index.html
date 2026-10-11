@@ -139,7 +139,7 @@
     </div>
   </section>
 
-  <!-- Quotation Form (Sends to WhatsApp & Email) -->
+  <!-- Quotation Form (Sends via Formspree Email + WhatsApp) -->
   <section id="quote" class="max-w-4xl mx-auto px-4 py-16">
     <div class="bg-white p-8 md:p-10 rounded-2xl border shadow-sm">
       <h3 class="text-2xl font-bold text-slate-900 text-center" id="form-heading">Request a Quotation</h3>
@@ -159,31 +159,32 @@
       <form class="mt-6 space-y-4" onsubmit="handleFormSubmit(event)">
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-600 mb-1" id="lbl-name">Buyer / Company Name</label>
-          <input type="text" id="buyer_name" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Your name or company" />
+          <input type="text" id="buyer_name" name="name" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Your name or company" />
         </div>
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-600 mb-1" id="lbl-contact">Your WhatsApp / Email</label>
-          <input type="text" id="buyer_contact" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="e.g. +7 999 1234567 or email" />
+          <input type="text" id="buyer_contact" name="contact" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="e.g. +7 999 1234567 or email" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1" id="lbl-prod">Product of Interest</label>
-            <input type="text" id="product_name" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Tea, Spices, Rice..." />
+            <input type="text" id="product_name" name="product" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Tea, Spices, Rice..." />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1" id="lbl-dest">Destination Port / City</label>
-            <input type="text" id="dest_port" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="e.g. St. Petersburg / Novorossiysk" />
+            <input type="text" id="dest_port" name="destination" required class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="e.g. St. Petersburg / Novorossiysk" />
           </div>
         </div>
         <div>
           <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Additional Requirements (Optional)</label>
-          <textarea id="notes" rows="2" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Quantity, packaging specifications..."></textarea>
+          <textarea id="notes" name="notes" rows="2" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:border-blue-600" placeholder="Quantity, packaging specifications..."></textarea>
         </div>
 
-        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-lg transition shadow-md flex items-center justify-center gap-2" id="form-submit">
-          <i class="fa-brands fa-whatsapp text-lg"></i> Send Enquiry via WhatsApp & Email
+        <button type="submit" id="submit-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+          <i class="fa-brands fa-whatsapp text-lg"></i> <span id="btn-text">Submit Enquiry (Direct to WhatsApp & Email)</span>
         </button>
       </form>
+      <div id="status-msg" class="hidden mt-3 text-center text-sm font-semibold text-green-600"></div>
     </div>
   </section>
 
@@ -192,7 +193,7 @@
     <p id="footer-text">© 2026 INDRA International Trade. All rights reserved. | Contact: +91 9483059849 | gmharsha1999@gmail.com</p>
   </footer>
 
-  <!-- Script for Language Toggle and Form Forwarding -->
+  <!-- Script -->
   <script>
     let currentLang = 'en';
 
@@ -229,7 +230,7 @@
         lblContact: 'Your WhatsApp / Email',
         lblProd: 'Product of Interest',
         lblDest: 'Destination Port / City',
-        formSubmit: '<i class="fa-brands fa-whatsapp text-lg"></i> Send Enquiry via WhatsApp',
+        btnText: 'Submit Enquiry (Direct to WhatsApp & Email)',
         footerText: '© 2026 INDRA International Trade. All rights reserved. | Contact: +91 9483059849 | gmharsha1999@gmail.com'
       },
       ru: {
@@ -264,7 +265,7 @@
         lblContact: 'Ваш WhatsApp / Email',
         lblProd: 'Интересующий продукт',
         lblDest: 'Порт назначения / Город в РФ',
-        formSubmit: '<i class="fa-brands fa-whatsapp text-lg"></i> Отправить через WhatsApp',
+        btnText: 'Отправить запрос (в WhatsApp и на Email)',
         footerText: '© 2026 INDRA International Trade. Все права защищены. | Контакты: +91 9483059849 | gmharsha1999@gmail.com'
       }
     };
@@ -315,11 +316,11 @@
       document.getElementById('lbl-contact').innerText = t.lblContact;
       document.getElementById('lbl-prod').innerText = t.lblProd;
       document.getElementById('lbl-dest').innerText = t.lblDest;
-      document.getElementById('form-submit').innerHTML = t.formSubmit;
+      document.getElementById('btn-text').innerText = t.btnText;
       document.getElementById('footer-text').innerText = t.footerText;
     }
 
-    function handleFormSubmit(e) {
+    async function handleFormSubmit(e) {
       e.preventDefault();
       const name = document.getElementById('buyer_name').value;
       const contact = document.getElementById('buyer_contact').value;
@@ -329,13 +330,34 @@
 
       const message = `*New B2B Inquiry - INDRA Trade*\n\n*Name:* ${name}\n*Contact:* ${contact}\n*Product:* ${product}\n*Destination:* ${dest}\n*Details:* ${notes || 'N/A'}`;
 
-      // Open WhatsApp directly to your number
+      // Open WhatsApp directly without app pop-up
       const waUrl = `https://wa.me/919483059849?text=${encodeURIComponent(message)}`;
       window.open(waUrl, '_blank');
 
-      // Also trigger Email client
-      const mailUrl = `mailto:gmharsha1999@gmail.com?subject=New B2B Quotation Request: ${product}&body=${encodeURIComponent(message)}`;
-      window.location.href = mailUrl;
+      // Send form data silently via backend API to email (no pop-up!)
+      try {
+        await fetch("https://formsubmit.co/ajax/gmharsha1999@gmail.com", {
+          method: "POST",
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            name: name,
+            contact: contact,
+            product: product,
+            destination: dest,
+            notes: notes,
+            _subject: `New B2B Export Quotation: ${product} (${name})`
+          })
+        });
+      } catch (err) {
+        console.log(err);
+      }
+
+      const status = document.getElementById('status-msg');
+      status.innerText = currentLang === 'en' ? "✓ Enquiry sent to WhatsApp & Email successfully!" : "✓ Запрос успешно отправлен в WhatsApp и на Email!";
+      status.classList.remove('hidden');
     }
   </script>
 </body>
